@@ -40,9 +40,9 @@ export default function Home() {
   const [isSaving, setIsSaving] = useState<boolean>(false); // State to show/hide progress bar
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const inputClearTimerRef = useRef<NodeJS.Timeout | null>(null);
   const addSoundRef = useRef<HTMLAudioElement>(null);
   const deleteSoundRef = useRef<HTMLAudioElement>(null);
+  const inputClearTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Effect to clear input after a delay
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function Home() {
     };
   }, [newNoteContent, editingNoteId]);
 
-  const playSound = (audioRef: React.RefObject<HTMLAudioElement>) => {
+  const playSound = (audioRef: React.RefObject<HTMLAudioElement | null>) => { // Changed type here
     if (audioRef.current) {
       audioRef.current.currentTime = 0; // Rewind to start
       audioRef.current.play().catch(e => console.error("Audio play failed:", e));
