@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Progress } from "@/components/ui/progress"; // Import Progress component
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,14 +23,27 @@ interface Note {
   id: number;
   content: string;
   imageUrl?: string;
+  timestamp: number; // Add timestamp
 }
+
+const HORRIBLE_BACKGROUND_COLORS = [
+  "bg-red-500", "bg-lime-400", "bg-fuchsia-700", "bg-cyan-300", "bg-yellow-600",
+  "bg-orange-800", "bg-purple-500", "bg-emerald-600", "bg-pink-300", "bg-indigo-900"
+];
 
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [newNoteContent, setNewNoteContent] = useState<string>("");
   const [newNoteImage, setNewNoteImage] = useState<File | null>(null);
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null); // State for editing
+  const [mainBgColor, setMainBgColor] = useState<string>("bg-card"); // State for main background
+  const [savingProgress, setSavingProgress] = useState<number>(0); // State for fake saving progress
+  const [isSaving, setIsSaving] = useState<boolean>(false); // State to show/hide progress bar
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputClearTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const addSoundRef = useRef<HTMLAudioElement>(null);
+  const deleteSoundRef = useRef<HTMLAudioElement>(null);
 
   // Effect to clear input after a delay
   useEffect(() => {
@@ -37,7 +51,7 @@ export default function Home() {
       clearTimeout(inputClearTimerRef.current);
     }
     inputClearTimerRef.current = setTimeout(() => {
-      if (newNoteContent.length > 0) {
+      if (newNoteContent.length > 0 && !editingNoteId) { // Don't clear if editing
         setNewNoteContent("");
         toast.warning("Your thoughts are fleeting! Input cleared!", {
           duration: 1500,
@@ -51,7 +65,30 @@ export default function Home() {
         clearTimeout(inputClearTimerRef.current);
       }
     };
-  }, [newNoteContent]);
+  }, [newNoteContent, editingNoteId]);
+
+  const playSound = (audioRef: React.RefObject<HTMLAudioElement>) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0; // Rewind to start
+      audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+    }
+  };
+
+  const startFakeSaving = () => {
+    setIsSaving(true);
+    setSavingProgress(0);
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      if (progress > 100) {
+        clearInterval(interval);
+        setIsSaving(false);
+        setSavingProgress(0);
+      } else {
+        setSavingProgress(progress);
+      }
+    }, 300); // Very slow progress
+  };
 
   const handleAddNote = () => {
     if (!newNoteContent.trim() && !newNoteImage) {
@@ -71,6 +108,7 @@ export default function Home() {
       id: Date.now(),
       content: newNoteContent,
       imageUrl: imageUrl,
+      timestamp: Date.now() + Math.floor(Math.random() * 1000000000), // Random, unhelpful timestamp
     };
 
     setNotes((prevNotes) => [...prevNotes, newNote]);
@@ -79,7 +117,27 @@ export default function Home() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+    playSound(addSoundRef);
+    startFakeSaving();
     toast.success("Note added! (But it won't save, haha!)", {
+      duration: 1500,
+      position: "bottom-right",
+    });
+  };
+
+  const handleSaveEdit = () => {
+    if (editingNoteId === null) return;
+
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === editingNoteId ? { ...note, content: newNoteContent } : note
+      )
+    );
+    setEditingNoteId(null);
+    // newNoteContent is intentionally not cleared here to be annoying
+    playSound(addSoundRef); // Use add sound for edit too
+    startFakeSaving();
+    toast.success("Note 'saved'! (Still won't save, though!)", {
       duration: 1500,
       position: "bottom-right",
     });
@@ -106,16 +164,38 @@ export default function Home() {
     const randomIndex = Math.floor(Math.random() * notes.length);
     const deletedNoteContent = notes[randomIndex].content.substring(0, 20) + "...";
     setNotes((prevNotes) => prevNotes.filter((_, index) => index !== randomIndex));
+    playSound(deleteSoundRef);
     toast.warning(`A random note was obliterated! (${deletedNoteContent})`, {
       duration: 2000,
       position: "top-center",
     });
   };
 
+  const handleEditClick = (note: Note) => {
+    setNewNoteContent(note.content);
+    setEditingNoteId(note.id);
+    toast.info("Editing a note! Good luck finding it!", {
+      duration: 1000,
+      position: "top-center",
+    });
+  };
+
+  const handleRandomBackground = () => {
+    const randomIndex = Math.floor(Math.random() * HORRIBLE_BACKGROUND_COLORS.length);
+    setMainBgColor(HORRIBLE_BACKGROUND_COLORS[randomIndex]);
+    toast.info("New background! Your eyes will thank me later... or not.", {
+      duration: 1500,
+      position: "bottom-left",
+    });
+  };
+
   return (
     <div className="grid grid-rows-[1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)] overflow-auto">
-      <main className="flex flex-col gap-8 row-start-1 items-center sm:items-start w-full max-w-4xl p-4 border-8 border-primary bg-card text-card-foreground shadow-2xl transform rotate-3 scale-95">
-        <h1 className="text-5xl font-extrabold text-destructive mb-8 text-center w-full animate-pulse animate-ping">
+      <audio ref={addSoundRef} src="/add-sound.mp3" preload="auto" />
+      <audio ref={deleteSoundRef} src="/delete-sound.mp3" preload="auto" />
+
+      <main className={`flex flex-col gap-8 row-start-1 items-center sm:items-start w-full max-w-4xl p-4 border-8 border-primary ${mainBgColor} text-card-foreground shadow-2xl transform rotate-3 scale-95 transition-colors duration-300`}>
+        <h1 className="text-5xl font-extrabold text-destructive mb-8 text-center w-full animate-pulse animate-ping animate-bounce">
           The WORST Note App EVER!
         </h1>
 
@@ -130,6 +210,9 @@ export default function Home() {
             onChange={(e) => setNewNoteContent(e.target.value)}
             className="w-full p-4 border-4 border-input bg-popover text-popover-foreground placeholder:text-muted-foreground focus:border-ring focus:ring-4 focus:ring-ring focus:ring-offset-4 focus:ring-offset-background resize-none h-32 text-lg font-mono"
           />
+          <div className={`text-right text-sm font-bold ${newNoteContent.length > 100 ? 'text-destructive animate-pulse' : 'text-muted-foreground animate-bounce'}`}>
+            Characters: {newNoteContent.length} (Who cares?)
+          </div>
 
           <label htmlFor="image-upload" className="text-xl font-bold text-accent-foreground mb-2 block mt-4">
             Upload a Pointless Image:
@@ -148,7 +231,7 @@ export default function Home() {
               <Button
                 className="w-full p-6 text-3xl font-black bg-primary text-primary-foreground hover:bg-destructive hover:text-destructive-foreground border-8 border-destructive shadow-lg transform skew-x-12 mt-6"
               >
-                ADD THIS MESS!
+                {editingNoteId ? "SAVE THIS EDIT!" : "ADD THIS MESS!"}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-card text-card-foreground border-destructive border-4">
@@ -162,18 +245,32 @@ export default function Home() {
                 <AlertDialogCancel className="bg-secondary text-secondary-foreground hover:bg-muted hover:text-muted-foreground border-2 border-accent">
                   Hesitate!
                 </AlertDialogCancel>
-                <AlertDialogAction onClick={handleAddNote} className="bg-primary text-primary-foreground hover:bg-destructive hover:text-destructive-foreground border-2 border-primary">
+                <AlertDialogAction onClick={editingNoteId ? handleSaveEdit : handleAddNote} className="bg-primary text-primary-foreground hover:bg-destructive hover:text-destructive-foreground border-2 border-primary">
                   Proceed to Chaos!
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
 
+          {isSaving && (
+            <div className="w-full mt-4">
+              <p className="text-center text-lg text-accent-foreground animate-pulse">"Saving" your non-existent data...</p>
+              <Progress value={savingProgress} className="w-full h-4 bg-muted border-4 border-ring animate-spin" indicatorClassName="bg-destructive" />
+            </div>
+          )}
+
           <Button
             onClick={handleDeleteRandomNote}
             className="w-full p-6 text-2xl font-black bg-accent text-accent-foreground hover:bg-destructive hover:text-destructive-foreground border-8 border-primary shadow-lg transform -skew-y-6 mt-6"
           >
             DELETE A RANDOM NOTE! (Why not?)
+          </Button>
+
+          <Button
+            onClick={handleRandomBackground}
+            className="w-full p-4 text-xl font-bold bg-popover text-popover-foreground hover:bg-input hover:text-input border-4 border-ring shadow-md transform rotate-12 mt-4"
+          >
+            CHANGE BACKGROUND (No going back!)
           </Button>
         </div>
 
@@ -190,7 +287,8 @@ export default function Home() {
             notes.map((note) => (
               <div
                 key={note.id}
-                className="p-6 border-4 border-secondary bg-card text-card-foreground shadow-xl transform rotate-6 hover:rotate-0 transition-transform duration-100 ease-in-out overflow-hidden"
+                onClick={() => handleEditClick(note)} // Make notes clickable for editing
+                className="p-6 border-4 border-secondary bg-card text-card-foreground shadow-xl transform rotate-6 hover:rotate-0 transition-transform duration-100 ease-in-out overflow-hidden cursor-not-allowed"
               >
                 <p className="text-lg font-serif mb-4 break-words text-foreground">{note.content}</p>
                 {note.imageUrl && (
@@ -201,6 +299,9 @@ export default function Home() {
                     style={{ maxWidth: '150%', height: 'auto', marginLeft: '-25%' }} // Intentionally bad scaling/positioning
                   />
                 )}
+                <p className="text-xs text-accent-foreground mt-2 font-bold animate-pulse">
+                  Timestamp: {note.timestamp} (Meaningless!)
+                </p>
               </div>
             ))
           )}
