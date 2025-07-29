@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/sonner"; // Import Toaster
+import { BadNotification } from "@/components/BadNotification"; // Import BadNotification
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,16 +29,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        <Toaster
-          richColors={false} // Disable rich colors for a less appealing look
-          theme="light" // Force light theme to clash with dark mode
-          position="top-center" // Keep a common position, but the styling will make it bad
-          closeButton={true} // Add a pointless close button
-          toastOptions={{
-            className: "border-4 border-destructive bg-popover text-popover-foreground", // Apply horrible default styles
-            duration: 2000, // Set a default duration, can be overridden
-          }}
-        />
+        <BadNotification />
       </body>
     </html>
   );

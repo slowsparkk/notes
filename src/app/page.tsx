@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress"; // Import Progress component
+import { showBadNotification } from "@/components/BadNotification"; // Import our bad notification system
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,11 +52,7 @@ export default function Home() {
     inputClearTimerRef.current = setTimeout(() => {
       if (newNoteContent.length > 0 && !editingNoteId) { // Don't clear if editing
         setNewNoteContent("");
-        toast.warning("Your thoughts are fleeting! Input cleared!", {
-          duration: 1500,
-          position: "top-right",
-          className: "bg-yellow-600 text-purple-500 border-4 border-lime-400", // Horrible style
-        });
+        showBadNotification("Your thoughts are fleeting! Input cleared!", "warning");
       }
     }, 5000); // Clears after 5 seconds of inactivity
 
@@ -93,11 +88,7 @@ export default function Home() {
 
   const handleAddNote = () => {
     if (!newNoteContent.trim() && !newNoteImage) {
-      toast.error("You must enter some text or upload an image to add a note!", {
-        duration: 1000,
-        position: "top-center",
-        className: "bg-red-500 text-white border-4 border-black", // Horrible style
-      });
+      showBadNotification("You must enter some text or upload an image to add a note!", "error");
       return;
     }
 
@@ -121,11 +112,7 @@ export default function Home() {
     }
     playSound(addSoundRef);
     startFakeSaving();
-    toast.success("Note added! (But it won't save, haha!)", {
-      duration: 1500,
-      position: "bottom-right",
-      className: "bg-lime-400 text-fuchsia-700 border-4 border-cyan-300", // Horrible style
-    });
+    showBadNotification("Note added! (But it won't save, haha!)", "success");
   };
 
   const handleSaveEdit = () => {
@@ -140,62 +127,38 @@ export default function Home() {
     // newNoteContent is intentionally not cleared here to be annoying
     playSound(addSoundRef); // Use add sound for edit too
     startFakeSaving();
-    toast.success("Note 'saved'! (Still won't save, though!)", {
-      duration: 1500,
-      position: "bottom-right",
-      className: "bg-orange-800 text-yellow-600 border-4 border-purple-500", // Horrible style
-    });
+    showBadNotification("Note 'saved'! (Still won't save, though!)", "success");
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setNewNoteImage(e.target.files[0]);
-      toast.info("Image selected! Hope it looks bad!", {
-        duration: 1000,
-        position: "top-left",
-        className: "bg-indigo-900 text-pink-300 border-4 border-emerald-600", // Horrible style
-      });
+      showBadNotification("Image selected! Hope it looks bad!", "info");
     }
   };
 
   const handleDeleteRandomNote = () => {
     if (notes.length === 0) {
-      toast.error("No notes to delete! You're safe... for now.", {
-        duration: 1000,
-        position: "bottom-center",
-        className: "bg-fuchsia-700 text-lime-400 border-4 border-red-500", // Horrible style
-      });
+      showBadNotification("No notes to delete! You're safe... for now.", "error");
       return;
     }
     const randomIndex = Math.floor(Math.random() * notes.length);
     const deletedNoteContent = notes[randomIndex].content.substring(0, 20) + "...";
     setNotes((prevNotes) => prevNotes.filter((_, index) => index !== randomIndex));
     playSound(deleteSoundRef);
-    toast.warning(`A random note was obliterated! (${deletedNoteContent})`, {
-      duration: 2000,
-      position: "top-center",
-      className: "bg-cyan-300 text-orange-800 border-4 border-yellow-600", // Horrible style
-    });
+    showBadNotification(`A random note was obliterated! (${deletedNoteContent})`, "warning");
   };
 
   const handleEditClick = (note: Note) => {
     setNewNoteContent(note.content);
     setEditingNoteId(note.id);
-    toast.info("Editing a note! Good luck finding it!", {
-      duration: 1000,
-      position: "top-center",
-      className: "bg-purple-500 text-emerald-600 border-4 border-pink-300", // Horrible style
-    });
+    showBadNotification("Editing a note! Good luck finding it!", "info");
   };
 
   const handleRandomBackground = () => {
     const randomIndex = Math.floor(Math.random() * HORRIBLE_BACKGROUND_COLORS.length);
     setMainBgColor(HORRIBLE_BACKGROUND_COLORS[randomIndex]);
-    toast.info("New background! Your eyes will thank me later... or not.", {
-      duration: 1500,
-      position: "bottom-left",
-      className: "bg-emerald-600 text-indigo-900 border-4 border-fuchsia-700", // Horrible style
-    });
+    showBadNotification("New background! Your eyes will thank me later... or not.", "info");
   };
 
   return (
@@ -316,7 +279,6 @@ export default function Home() {
           )}
         </div>
       </main>
-      <MadeWithDyad />
     </div>
   );
 }
