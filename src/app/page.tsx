@@ -56,6 +56,7 @@ export default function Home() {
         toast.warning("Your thoughts are fleeting! Input cleared!", {
           duration: 1500,
           position: "top-right",
+          className: "bg-yellow-600 text-purple-500 border-4 border-lime-400", // Horrible style
         });
       }
     }, 5000); // Clears after 5 seconds of inactivity
@@ -95,6 +96,7 @@ export default function Home() {
       toast.error("You must enter some text or upload an image to add a note!", {
         duration: 1000,
         position: "top-center",
+        className: "bg-red-500 text-white border-4 border-black", // Horrible style
       });
       return;
     }
@@ -122,6 +124,7 @@ export default function Home() {
     toast.success("Note added! (But it won't save, haha!)", {
       duration: 1500,
       position: "bottom-right",
+      className: "bg-lime-400 text-fuchsia-700 border-4 border-cyan-300", // Horrible style
     });
   };
 
@@ -140,6 +143,7 @@ export default function Home() {
     toast.success("Note 'saved'! (Still won't save, though!)", {
       duration: 1500,
       position: "bottom-right",
+      className: "bg-orange-800 text-yellow-600 border-4 border-purple-500", // Horrible style
     });
   };
 
@@ -149,6 +153,7 @@ export default function Home() {
       toast.info("Image selected! Hope it looks bad!", {
         duration: 1000,
         position: "top-left",
+        className: "bg-indigo-900 text-pink-300 border-4 border-emerald-600", // Horrible style
       });
     }
   };
@@ -158,6 +163,7 @@ export default function Home() {
       toast.error("No notes to delete! You're safe... for now.", {
         duration: 1000,
         position: "bottom-center",
+        className: "bg-fuchsia-700 text-lime-400 border-4 border-red-500", // Horrible style
       });
       return;
     }
@@ -168,6 +174,7 @@ export default function Home() {
     toast.warning(`A random note was obliterated! (${deletedNoteContent})`, {
       duration: 2000,
       position: "top-center",
+      className: "bg-cyan-300 text-orange-800 border-4 border-yellow-600", // Horrible style
     });
   };
 
@@ -177,6 +184,7 @@ export default function Home() {
     toast.info("Editing a note! Good luck finding it!", {
       duration: 1000,
       position: "top-center",
+      className: "bg-purple-500 text-emerald-600 border-4 border-pink-300", // Horrible style
     });
   };
 
@@ -186,6 +194,7 @@ export default function Home() {
     toast.info("New background! Your eyes will thank me later... or not.", {
       duration: 1500,
       position: "bottom-left",
+      className: "bg-emerald-600 text-indigo-900 border-4 border-fuchsia-700", // Horrible style
     });
   };
 
