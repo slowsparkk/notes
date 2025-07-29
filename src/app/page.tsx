@@ -4,8 +4,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress"; // Import Progress component
-import { showBadNotification } from "@/components/BadNotification"; // Import our bad notification system
+import { Progress } from "@/components/ui/progress";
+import { showBadNotification } from "@/components/BadNotification";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +22,7 @@ interface Note {
   id: number;
   content: string;
   imageUrl?: string;
-  timestamp: number; // Add timestamp
+  timestamp: number;
 }
 
 const HORRIBLE_BACKGROUND_COLORS = [
@@ -34,14 +34,12 @@ export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [newNoteContent, setNewNoteContent] = useState<string>("");
   const [newNoteImage, setNewNoteImage] = useState<File | null>(null);
-  const [editingNoteId, setEditingNoteId] = useState<number | null>(null); // State for editing
-  const [mainBgColor, setMainBgColor] = useState<string>("bg-card"); // State for main background
-  const [savingProgress, setSavingProgress] = useState<number>(0); // State for fake saving progress
-  const [isSaving, setIsSaving] = useState<boolean>(false); // State to show/hide progress bar
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [mainBgColor, setMainBgColor] = useState<string>("bg-card");
+  const [savingProgress, setSavingProgress] = useState<number>(0);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const addSoundRef = useRef<HTMLAudioElement>(null);
-  const deleteSoundRef = useRef<HTMLAudioElement>(null);
   const inputClearTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Effect to clear input after a delay
@@ -50,11 +48,11 @@ export default function Home() {
       clearTimeout(inputClearTimerRef.current);
     }
     inputClearTimerRef.current = setTimeout(() => {
-      if (newNoteContent.length > 0 && !editingNoteId) { // Don't clear if editing
+      if (newNoteContent.length > 0 && !editingNoteId) {
         setNewNoteContent("");
         showBadNotification("Your thoughts are fleeting! Input cleared!", "warning");
       }
-    }, 5000); // Clears after 5 seconds of inactivity
+    }, 5000);
 
     return () => {
       if (inputClearTimerRef.current) {
@@ -62,13 +60,6 @@ export default function Home() {
       }
     };
   }, [newNoteContent, editingNoteId]);
-
-  const playSound = (audioRef: React.RefObject<HTMLAudioElement | null>) => { // Changed type here
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0; // Rewind to start
-      audioRef.current.play().catch(e => console.error("Audio play failed:", e));
-    }
-  };
 
   const startFakeSaving = () => {
     setIsSaving(true);
@@ -83,7 +74,7 @@ export default function Home() {
       } else {
         setSavingProgress(progress);
       }
-    }, 300); // Very slow progress
+    }, 300);
   };
 
   const handleAddNote = () => {
@@ -101,7 +92,7 @@ export default function Home() {
       id: Date.now(),
       content: newNoteContent,
       imageUrl: imageUrl,
-      timestamp: Date.now() + Math.floor(Math.random() * 1000000000), // Random, unhelpful timestamp
+      timestamp: Date.now() + Math.floor(Math.random() * 1000000000),
     };
 
     setNotes((prevNotes) => [...prevNotes, newNote]);
@@ -110,7 +101,6 @@ export default function Home() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    playSound(addSoundRef);
     startFakeSaving();
     showBadNotification("Note added! (But it won't save, haha!)", "success");
   };
@@ -125,7 +115,6 @@ export default function Home() {
     );
     setEditingNoteId(null);
     // newNoteContent is intentionally not cleared here to be annoying
-    playSound(addSoundRef); // Use add sound for edit too
     startFakeSaving();
     showBadNotification("Note 'saved'! (Still won't save, though!)", "success");
   };
@@ -145,7 +134,6 @@ export default function Home() {
     const randomIndex = Math.floor(Math.random() * notes.length);
     const deletedNoteContent = notes[randomIndex].content.substring(0, 20) + "...";
     setNotes((prevNotes) => prevNotes.filter((_, index) => index !== randomIndex));
-    playSound(deleteSoundRef);
     showBadNotification(`A random note was obliterated! (${deletedNoteContent})`, "warning");
   };
 
@@ -163,9 +151,6 @@ export default function Home() {
 
   return (
     <div className="grid grid-rows-[1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)] overflow-auto">
-      <audio ref={addSoundRef} src="/add-sound.mp3" preload="auto" />
-      <audio ref={deleteSoundRef} src="/delete-sound.mp3" preload="auto" />
-
       <main className={`flex flex-col gap-8 row-start-1 items-center sm:items-start w-full max-w-4xl p-4 border-8 border-primary ${mainBgColor} text-card-foreground shadow-2xl transform rotate-3 scale-95 transition-colors duration-300`}>
         <h1 className="text-5xl font-extrabold text-destructive mb-8 text-center w-full animate-pulse animate-ping animate-bounce">
           The WORST Note App EVER!
@@ -259,7 +244,7 @@ export default function Home() {
             notes.map((note) => (
               <div
                 key={note.id}
-                onClick={() => handleEditClick(note)} // Make notes clickable for editing
+                onClick={() => handleEditClick(note)}
                 className="p-6 border-4 border-secondary bg-card text-card-foreground shadow-xl transform rotate-6 hover:rotate-0 transition-transform duration-100 ease-in-out overflow-hidden cursor-not-allowed"
               >
                 <p className="text-lg font-serif mb-4 break-words text-foreground">{note.content}</p>
@@ -268,7 +253,7 @@ export default function Home() {
                     src={note.imageUrl}
                     alt="Horrible Note Image"
                     className="w-full h-auto object-cover border-8 border-destructive mt-4 transform scale-110 -rotate-12"
-                    style={{ maxWidth: '150%', height: 'auto', marginLeft: '-25%' }} // Intentionally bad scaling/positioning
+                    style={{ maxWidth: '150%', height: 'auto', marginLeft: '-25%' }}
                   />
                 )}
                 <p className="text-xs text-accent-foreground mt-2 font-bold animate-pulse">
